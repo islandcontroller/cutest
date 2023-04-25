@@ -29,7 +29,7 @@ Have a look at the [**Example Project**](https://github.com/islandcontroller/cut
 
 * For running Docker Engine on WSL2, make sure to add the project drive letter as a path mapping to the build configuration, e.g.: `C:|/mnt/c/`. This is already prepared in the template.
 
-* Sometimes Eclipse will not automatically update the header file cache from the Docker container. Usually this is noticed by syntax error markup on all test case and module definitions. To fix this, close the project and restart Eclipse.
+* Sometimes Eclipse will not automatically update the header file cache from the Docker container. Usually this is noticed by syntax error markup on all test case and module definitions. To fix this, temporarily de-select "Build inside Docker Image" in project properties. Apply changes, re-enable the container build and apply again.
 
 * Use `#include "<path to appl source>.c"` at the top of your test modules to avoid duplicating application source files into the testing project.
 
