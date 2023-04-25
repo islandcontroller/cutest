@@ -1,0 +1,6 @@
+**/.settings
+**/UnitTest
+*.html
+*.o
+*.d
+/build/
