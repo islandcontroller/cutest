@@ -91,6 +91,8 @@ typedef struct tag_cutest_case_t
   // Results
   cutest_result_t eResult;          ///< Result code
   char acMessage[CUTEST_MAX_LEN_MESSAGE]; ///< Error or diagnostic message
+  const char* pszMsgFile;           ///< Message file name
+  unsigned long ulMsgLine;          ///< Message line
 } cutest_case_t;
 
 /*! Test group (set of cases)                                                 */
@@ -165,10 +167,12 @@ typedef struct tag_cutest_root_t
     .ulLine = __LINE__,                                                        \
     .pfvTestFn = _##x##__TestFn,                                               \
     .eResult = EN_CUTEST_RESULT_UNDEF,                                         \
-    .acMessage = ""                                                            \
+    .acMessage = "",                                                           \
+    .pszMsgFile = __FILE__,                                                    \
+    .ulMsgLine = __LINE__                                                      \
   };                                                                           \
   cutest_case_ptr_t const x = &_##x##__TestCase;                               \
-  void _##x##__TestFn(cutest_case_ptr_t _tc)
+  void _##x##__TestFn(cutest_case_ptr_t _tc __attribute__((unused)))
 
 /*! External test case declaration. Usage:
  *
@@ -249,12 +253,12 @@ void CuTest_EvalAssertMemEquals(cutest_case_ptr_t,  const char*, unsigned long, 
 #define CuPass()                                        CuTest_EvalAssert         (_tc,  __FILE__, __LINE__, (_Bool)1,           NULL     )
 #define CuFail(message)                                 CuTest_EvalAssert         (_tc,  __FILE__, __LINE__, (_Bool)0,           (message))
 #define CuAssert(condition, message)                    CuTest_EvalAssert         (_tc,  __FILE__, __LINE__, (_Bool)(condition), (message))
-#define CuAssertIntEquals(expected, actual)             CuTest_EvalAssertIntEquals(_tc,  __FILE__, __LINE__, (intmax_t)(expected), (intmax_t)(actual))
-#define CuAssertFltEquals(expected, actual, tolerance)  CuTest_EvalAssertFltEquals(_tc,  __FILE__, __LINE__, (intmax_t)(expected), (intmax_t)(actual))
-#define CuAssertPtrEquals(expected, actual)             CuTest_EvalAssertPtrEquals(_tc,  __FILE__, __LINE__, (intmax_t)(expected), (intmax_t)(actual))
-#define CuAssertPtrNotNull(actual)                      CuTest_EvalAssertPtrNotNull(_tc, __FILE__, __LINE__,                       (intmax_t)(actual))
-#define CuAssertStrEquals(expected, actual)             CuTest_EvalAssertStrEquals(_tc,  __FILE__, __LINE__, (intmax_t)(expected), (intmax_t)(actual))
-#define CuAssertMemEquals(expected, actual, size)       CuTest_EvalAssertMemEquals(_tc,  __FILE__, __LINE__, (intmax_t)(expected), (intmax_t)(actual), (size_t)(size))
+#define CuAssertIntEquals(expected, actual)             CuTest_EvalAssertIntEquals(_tc,  __FILE__, __LINE__, (intmax_t)(expected),    (intmax_t)(actual))
+#define CuAssertFltEquals(expected, actual, tolerance)  CuTest_EvalAssertFltEquals(_tc,  __FILE__, __LINE__, (long double)(expected), (long double)(actual), (long double)(tolerance))
+#define CuAssertPtrEquals(expected, actual)             CuTest_EvalAssertPtrEquals(_tc,  __FILE__, __LINE__, (const void*)(expected), (const void*)(actual))
+#define CuAssertPtrNotNull(actual)                      CuTest_EvalAssertPtrNotNull(_tc, __FILE__, __LINE__,                          (const void*)(actual))
+#define CuAssertStrEquals(expected, actual)             CuTest_EvalAssertStrEquals(_tc,  __FILE__, __LINE__, (const char*)(expected), (const char*)(actual))
+#define CuAssertMemEquals(expected, actual, size)       CuTest_EvalAssertMemEquals(_tc,  __FILE__, __LINE__, (const void*)(expected), (const void*)(actual), (size_t)(size))
 
 
 /*- Test run setup -----------------------------------------------------------*/

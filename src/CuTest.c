@@ -220,12 +220,12 @@ static void CuTestPrintDetails_Case(unsigned long* pulNum, const cutest_case_ptr
   {
     case EN_CUTEST_RESULT_FAIL:
       *pulNum += 1;
-      printf("\t%ld) %s: %s\n", *pulNum, psCase->pszName, psCase->acMessage);
+      printf("\t%ld) %s -- %s:%ld: %s\n", *pulNum, psCase->pszName, psCase->pszMsgFile, psCase->ulMsgLine, psCase->acMessage);
       break;
 
     case EN_CUTEST_RESULT_UNDEF:
       *pulNum += 1;
-      printf("\t%ld) %s: not evaluated\n", *pulNum, psCase->pszName);
+      printf("\t%ld) %s -- %s:%ld: not evaluated\n", *pulNum, psCase->pszName, psCase->pszFile, psCase->ulLine);
       break;
 
     default:;
@@ -457,16 +457,18 @@ static void CuTestGenerateReport_CaseLine(FILE* f, unsigned long* pulNum, const 
 
   const char* pszColor;
   const char* pszResult;
+  _Bool bPrintMsg;
   switch (psCase->eResult)
   {
-    case EN_CUTEST_RESULT_PASS: pszColor = "lime";    pszResult = "pass";     break;
-    case EN_CUTEST_RESULT_FAIL: pszColor = "red";     pszResult = "fail";     break;
-    default:                    pszColor = "silver";  pszResult = "invalid";
+    case EN_CUTEST_RESULT_PASS: pszColor = "lime";    pszResult = "pass";    bPrintMsg = 0; break;
+    case EN_CUTEST_RESULT_FAIL: pszColor = "red";     pszResult = "fail";    bPrintMsg = 1; break;
+    default:                    pszColor = "silver";  pszResult = "invalid", bPrintMsg = 0;
   }
 
-  fprintf(f, "<tr><td>%ld</td><td>%s</td><td><a href=\"%s#L%ld\">%s#L%ld</a></td><td style=\"background-color: %s\">%s</td><td>%s</td></tr>",
-    *pulNum, psCase->pszName, psCase->pszFile, psCase->ulLine, psCase->pszFile, psCase->ulLine, pszColor, pszResult, psCase->acMessage
-  );
+  const char* pszFile = bPrintMsg ? psCase->pszMsgFile : psCase->pszFile;
+  unsigned long ulLine = bPrintMsg ? psCase->ulMsgLine : psCase->ulLine;
+  const char* pszMessage = bPrintMsg ? psCase->acMessage : "";
+  fprintf(f, "<tr><td>%ld</td><td>%s</td><td><a href=\"%s#L%ld\">%s#L%ld</a></td><td style=\"background-color: %s\">%s</td><td>%s</td></tr>", *pulNum, psCase->pszName, pszFile, ulLine, pszFile, ulLine, pszColor, pszResult, pszMessage);
 }
 
 /*!****************************************************************************
@@ -559,10 +561,12 @@ void CuTest_EvalAssert(cutest_case_ptr_t psTc, const char* pszFile, unsigned lon
   else
   {
     const char* pszFmt;
-    if ((pszMessage != NULL) && (pszMessage[0] != '\0')) pszFmt = "%s:%ld: assert failed: %s";
-    else                                                 pszFmt = "%s:%ld: assert failed.";
+    if ((pszMessage != NULL) && (pszMessage[0] != '\0')) pszFmt = "%s";
+    else                                                 pszFmt = "assert failed.";
 
-    snprintf(psTc->acMessage, sizeof(psTc->acMessage), pszFmt, pszFile, ulLine, pszMessage);
+    snprintf(psTc->acMessage, sizeof(psTc->acMessage), pszFmt, pszMessage);
+    psTc->pszMsgFile = pszFile;
+    psTc->ulMsgLine = ulLine;
     CuTestAssertFailed(psTc);
   }
 }
@@ -590,7 +594,9 @@ void CuTest_EvalAssertIntEquals(cutest_case_ptr_t psTc, const char* pszFile, uns
   }
   else
   {
-    snprintf(psTc->acMessage, sizeof(psTc->acMessage), "%s:%ld: expected <%jd>, but was <%jd>", pszFile, ulLine, llExpected, llActual);
+    snprintf(psTc->acMessage, sizeof(psTc->acMessage), "expected <%jd>, but was <%jd>", llExpected, llActual);
+    psTc->pszMsgFile = pszFile;
+    psTc->ulMsgLine = ulLine;
     CuTestAssertFailed(psTc);
   }
 }
@@ -618,7 +624,9 @@ void CuTest_EvalAssertDblEquals (cutest_case_ptr_t psTc, const char* pszFile, un
   long double llfDeviation = fabsl(llfActual - llfExpected);
   if (llfDeviation > llfTolerance)
   {
-    snprintf(psTc->acMessage, sizeof(psTc->acMessage), "%s:%ld: expected <%Lf>, but was <%Lf> (Deviation <%Lf> exceeds <%Lf>)", pszFile, ulLine, llfExpected, llfActual, llfDeviation, llfTolerance);
+    snprintf(psTc->acMessage, sizeof(psTc->acMessage), "expected <%Lf>, but was <%Lf> (Deviation <%Lf> exceeds <%Lf>)", llfExpected, llfActual, llfDeviation, llfTolerance);
+    psTc->pszMsgFile = pszFile;
+    psTc->ulMsgLine = ulLine;
     CuTestAssertFailed(psTc);
   }
   else
@@ -654,11 +662,13 @@ void CuTest_EvalAssertPtrEquals (cutest_case_ptr_t psTc, const char* pszFile, un
     const void* p1;
     const void* p2;
 
-    if (pExpected == NULL)    pszFmt = "%s:%ld: expected <NULL>, but was <%p>", p1 = pActual,   p2 = NULL;
-    else if (pActual == NULL) pszFmt = "%s:%ld: expected <%p>, but was <NULL>", p1 = pExpected, p2 = NULL;
-    else                      pszFmt = "%s:%ld: expected <%p>, but was <%p>",   p1 = pExpected, p2 = pActual;
+    if (pExpected == NULL)    pszFmt = "expected <NULL>, but was <%p>", p1 = pActual,   p2 = NULL;
+    else if (pActual == NULL) pszFmt = "expected <%p>, but was <NULL>", p1 = pExpected, p2 = NULL;
+    else                      pszFmt = "expected <%p>, but was <%p>",   p1 = pExpected, p2 = pActual;
 
-    snprintf(psTc->acMessage, sizeof(psTc->acMessage), pszFmt, pszFile, ulLine, p1, p2);
+    snprintf(psTc->acMessage, sizeof(psTc->acMessage), pszFmt, p1, p2);
+    psTc->pszMsgFile = pszFile;
+    psTc->ulMsgLine = ulLine;
     CuTestAssertFailed(psTc);
   }
 }
@@ -685,7 +695,9 @@ void CuTest_EvalAssertPtrNotNull(cutest_case_ptr_t psTc, const char* pszFile, un
   }
   else
   {
-    snprintf(psTc->acMessage, sizeof(psTc->acMessage), "%s:%ld: <NULL> unexpected", pszFile, ulLine);
+    snprintf(psTc->acMessage, sizeof(psTc->acMessage), "<NULL> unexpected");
+    psTc->pszMsgFile = pszFile;
+    psTc->ulMsgLine = ulLine;
     CuTestAssertFailed(psTc);
   }
 }
@@ -715,10 +727,12 @@ void CuTest_EvalAssertStrEquals(cutest_case_ptr_t psTc, const char* pszFile, uns
   else
   {
     const char* pszFmt;
-    if (pszActual == NULL) pszFmt = "%s:%ld: expected <%s>, but was <NULL>";
-    else                   pszFmt = "%s:%ld: expected <%s>, but was <%s>";
+    if (pszActual == NULL) pszFmt = "expected <%s>, but was <NULL>";
+    else                   pszFmt = "expected <%s>, but was <%s>";
 
-    snprintf(psTc->acMessage, sizeof(psTc->acMessage), pszFmt, pszFile, ulLine, pszExpected, pszActual);
+    snprintf(psTc->acMessage, sizeof(psTc->acMessage), pszFmt, pszExpected, pszActual);
+    psTc->pszMsgFile = pszFile;
+    psTc->ulMsgLine = ulLine;
     CuTestAssertFailed(psTc);
   }
 }
@@ -749,7 +763,9 @@ void CuTest_EvalAssertMemEquals (cutest_case_ptr_t psTc, const char* pszFile, un
 
     if (ucExpected != ucActual)
     {
-      snprintf(psTc->acMessage, sizeof(psTc->acMessage), "%s:%ld: mismatch at offset <%d>: expected <0x%02X>, but was <0x%02X>", pszFile, ulLine, i, (unsigned)ucExpected, (unsigned)ucActual);
+      snprintf(psTc->acMessage, sizeof(psTc->acMessage), "mismatch at offset <%d>: expected <0x%02X>, but was <0x%02X>", i, (unsigned)ucExpected, (unsigned)ucActual);
+      psTc->pszMsgFile = pszFile;
+      psTc->ulMsgLine = ulLine;
       CuTestAssertFailed(psTc);
     }
   }
@@ -796,11 +812,17 @@ void CuTest_RunTestCase(cutest_case_ptr_t psTc)
   psTc->eResult = EN_CUTEST_RESULT_UNDEF;
   memset(psTc->acMessage, '\0', sizeof(psTc->acMessage));
 
-  // Output current test case for progress
-  printf("%s, %s:%ld\n", psTc->pszName, psTc->pszFile, psTc->ulLine);
-
   // Set return point and execute test case
   if (setjmp(psTc->sEnv) == 0) psTc->pfvTestFn(psTc);
+
+  // Print results for Eclipse error parser
+  switch (psTc->eResult)
+  {
+    case EN_CUTEST_RESULT_PASS: printf("%s:%ld:0: info: %s passed.\n",           psTc->pszFile,    psTc->ulLine,    psTc->pszName);   break;
+    case EN_CUTEST_RESULT_FAIL: printf("%s:%ld:0: error: %s failed.\n ",         psTc->pszFile,    psTc->ulLine,    psTc->pszName);
+                                printf("%s:%ld:0: error: %s\n ",                 psTc->pszMsgFile, psTc->ulMsgLine, psTc->acMessage); break;
+    default:                    printf("%s:%ld:0: warning: %s not evaluated.\n", psTc->pszFile,    psTc->ulLine,    psTc->pszName);   break;
+  }
 }
 
 /*!****************************************************************************
@@ -819,14 +841,7 @@ void CuTest_RunTestGroup(cutest_group_ptr_t psGroup)
   for (unsigned long i = 0; i < CUTEST_MAX_NUM_CASES; ++i)
   {
     cutest_case_ptr_t psCase = psGroup->ppItems[i];
-    if (psCase != NULL)
-    {
-      // Prepend test group name before test case info
-      printf("\t%s, %s:%ld -- ", psGroup->pszName, psGroup->pszFile, psGroup->ulLine);
-
-      // Run test case
-      CuTest_RunTestCase(psCase);
-    }
+    if (psCase != NULL) CuTest_RunTestCase(psCase);
   }
 }
 
@@ -841,9 +856,6 @@ void CuTest_RunTestModule(cutest_module_ptr_t psModule)
 {
   assert(psModule != NULL);
   assert(psModule->ppItems != NULL);
-
-  // Print module name as section divider
-  printf("Module \"%s\", %s:%ld\n", psModule->pszName, psModule->pszFile, psModule->ulLine);
 
   // Iterate through available groups
   for (unsigned long i = 0; i < CUTEST_MAX_NUM_GROUPS; ++i)
