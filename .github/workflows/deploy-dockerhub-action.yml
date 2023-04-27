@@ -58,4 +58,5 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
           repository: ${{ secrets.DOCKERHUB_NAMESPACE }}/${{ secrets.DOCKERHUB_IMAGENAME }}
-          short-description: C Unit-Testing Framework for Embedded Applications
+          short-description: ${{ github.event.repository.description }}
+          enable-url-completion: true
