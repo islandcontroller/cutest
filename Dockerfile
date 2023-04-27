@@ -17,6 +17,8 @@ WORKDIR /var/cutest
 #--[ Build stage ]--------------------------------------------------------------
 # Uses the previously defined build/deploy runner
 FROM base-runner AS builder
+ARG CUTEST_LIB_VERSION
+ENV CUTEST_LIB_VERSION ${CUTEST_LIB_VERSION}
 
 # Copy CuTest sources into workdir
 COPY src/* ./

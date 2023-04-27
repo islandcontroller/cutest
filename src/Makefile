@@ -1,5 +1,8 @@
+# Custom definitions
+CCDEFS := -DCUTEST_VERSION="\"${CUTEST_LIB_VERSION}\""
+
 # Compiler flags
-CCFLAGS := -Wall -Wextra -c -fmessage-length=0 -std=c11
+CCFLAGS := -Wall -Wextra -c -fmessage-length=0 -std=c11 $(CCDEFS)
 
 # Find source files in PWD, assign object file names
 LIBS := -lm
@@ -17,7 +20,7 @@ endif
 
 # Link into static library
 libcutest.a: $(OBJS)
-	ar rcu $@ $+
+	ar rc $@ $+
 	ranlib $@
 
 # 'all' build target
