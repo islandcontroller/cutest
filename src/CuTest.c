@@ -613,9 +613,10 @@ void CuTest_EvalAssertIntEquals(cutest_case_ptr_t psTc, const char* pszFile, uns
  * @param[in] llfExpected Expected value
  * @param[in] llfActual   Actual value
  * @param[in] llfTolerance  Maximum allowed deviation between both values
- * @date 26.04.2023
+ * @date  26.04.2023
+ * @date  27.04.2023  Renamed to ..FltEquals to match macro invocation
  ******************************************************************************/
-void CuTest_EvalAssertDblEquals (cutest_case_ptr_t psTc, const char* pszFile, unsigned long ulLine, long double llfExpected, long double llfActual, long double llfTolerance)
+void CuTest_EvalAssertFltEquals(cutest_case_ptr_t psTc, const char* pszFile, unsigned long ulLine, long double llfExpected, long double llfActual, long double llfTolerance)
 {
   assert(psTc != NULL);
   assert(pszFile != NULL);
