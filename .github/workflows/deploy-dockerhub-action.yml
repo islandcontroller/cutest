@@ -20,7 +20,7 @@ jobs:
         run: |
           case "${GITHUB_REF_TYPE}" in
             ("branch") echo "version=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT" ;;
-            ("tag")    echo "version=${ github.ref_name }"          >> "$GITHUB_OUTPUT" ;;
+            ("tag")    echo "version=${{ github.ref_name }}"        >> "$GITHUB_OUTPUT" ;;
             (*)        echo "version=unknown"                       >> "$GITHUB_OUTPUT" ;;
           esac
 
