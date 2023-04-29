@@ -1,6 +1,6 @@
 # cutest
 
-[![License](https://img.shields.io/github/license/islandcontroller/cutest)](LICENSE) [![Docker Hub](https://shields.io/badge/docker-islandc%2Fcutest-blue?logo=docker)](https://hub.docker.com/r/islandc/cutest)
+[![License](https://img.shields.io/github/license/islandcontroller/cutest)](LICENSE) [![GitHub](https://shields.io/badge/github-islandcontroller%2Fcutest-black?logo=github)](https://github.com/islandcontroller/cutest) [![Docker Hub](https://shields.io/badge/docker-islandc%2Fcutest-blue?logo=docker)](https://hub.docker.com/r/islandc/cutest) ![Docker Image Version (latest semver)](https://img.shields.io/docker/v/islandc/cutest?sort=semver)
 
 *A lightweight C Unit-Testing Framework for Embedded Applications.*
 
