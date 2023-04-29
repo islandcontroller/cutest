@@ -51,12 +51,3 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
             "CUTEST_LIB_VERSION=${{ steps.vers.outputs.version }}"
-      
-      - name: Update description
-        uses: peter-evans/dockerhub-description@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-          repository: ${{ secrets.DOCKERHUB_NAMESPACE }}/${{ secrets.DOCKERHUB_IMAGENAME }}
-          short-description: ${{ github.event.repository.description }}
-          enable-url-completion: true
