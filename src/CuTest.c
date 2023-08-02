@@ -16,6 +16,7 @@
  *
  * @date  24.04.2023
  * @date  01.08.2023  Replaced timestamp type
+ * @date  02.08.2023  Added output toggles
  ******************************************************************************/
 
 /*- Header files -------------------------------------------------------------*/
@@ -836,6 +837,7 @@ void CuTest_AppendRootItem(cutest_root_ptr_t psRoot, cutest_type_t eType, void* 
  *
  * @param[in] psTc        Test case to be run
  * @date  26.04.2023
+ * @date  02.08.2023  Added error parser message toggle
  ******************************************************************************/
 void CuTest_RunTestCase(cutest_case_ptr_t psTc)
 {
@@ -850,7 +852,7 @@ void CuTest_RunTestCase(cutest_case_ptr_t psTc)
   if (setjmp(psTc->sEnv) == 0) psTc->pfvTestFn(psTc);
 
   // Print results for Eclipse error parser
-  switch (psTc->eResult)
+  if (psTc->bPrintResult) switch (psTc->eResult)
   {
     case EN_CUTEST_RESULT_PASS: printf("%s:%ld:0: info: %s passed.\n",           psTc->pszFile,    psTc->ulLine,    psTc->pszName);   break;
     case EN_CUTEST_RESULT_FAIL: printf("%s:%ld:0: error: %s failed.\n ",         psTc->pszFile,    psTc->ulLine,    psTc->pszName);

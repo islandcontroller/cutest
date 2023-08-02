@@ -16,6 +16,7 @@
  *
  * @date  24.04.2023
  * @date  01.08.2023  Replaced timestamp type
+ * @date  02.08.2023  Added output toggles
  ******************************************************************************/
 
 #ifndef _CUTEST_H_
@@ -41,15 +42,30 @@
 /*! Max. number of root items                                                 */
 #define CUTEST_MAX_NUM_ROOT_ITEM      32u
 
-/*! Project name, unless already defined in application                       */
+/*! Project name (override-able)                                              */
 #ifndef CUTEST_PROJECT_NAME
 #define CUTEST_PROJECT_NAME           "Unnamed Project"
 #endif /* CUTEST_PROJECT_NAME */
 
-/*! Output report file name, unless already defined in application            */
+/*! Output report file name (override-able)                                   */
 #ifndef CUTEST_REPORT_FILE
 #define CUTEST_REPORT_FILE            "report.html"
 #endif /* CUTEST_REPORT_FILE */
+
+/*! Generate report file (override-able)                                      */
+#ifndef CUTEST_GENERATE_REPORT
+#define CUTEST_GENERATE_REPORT        1u
+#endif /* CUTEST_GENERATE_REPORT */
+
+/*! Generate and print test run summary (override-able)                       */
+#ifndef CUTEST_GENERATE_SUMMARY
+#define CUTEST_GENERATE_SUMMARY       1u
+#endif /* CUTEST_GENERATE_SUMMARY */
+
+/*! Print test case results for Eclipse highlighting (override-able)          */
+#ifndef CUTEST_PRINT_TESTCASE_RESULT
+#define CUTEST_PRINT_TESTCASE_RESULT  1u
+#endif /* CUTEST_PRINT_TESTCASE_RESULT */
 
 
 /*- Type definitions ---------------------------------------------------------*/
@@ -95,6 +111,9 @@ typedef struct tag_cutest_case_t
   char acMessage[CUTEST_MAX_LEN_MESSAGE]; ///< Error or diagnostic message
   const char* pszMsgFile;           ///< Message file name
   unsigned long ulMsgLine;          ///< Message line
+
+  // Output config
+  _Bool bPrintResult;               ///< Print run result to stdout
 } cutest_case_t;
 
 /*! Test group (set of cases)                                                 */
@@ -171,7 +190,8 @@ typedef struct tag_cutest_root_t
     .eResult = EN_CUTEST_RESULT_UNDEF,                                         \
     .acMessage = "",                                                           \
     .pszMsgFile = __FILE__,                                                    \
-    .ulMsgLine = __LINE__                                                      \
+    .ulMsgLine = __LINE__,                                                     \
+    .bPrintResult = CUTEST_PRINT_TESTCASE_RESULT                               \
   };                                                                           \
   cutest_case_ptr_t const x = &_##x##__TestCase;                               \
   void _##x##__TestFn(cutest_case_ptr_t _tc __attribute__((unused)))
@@ -304,8 +324,8 @@ cutest_result_t CuTest_GetRunResult(const cutest_root_ptr_t);
 
 #define END_TEST_RUN()                                                         \
   time_t _ts = time(NULL);                                                     \
-  CuTest_PrintRunResults(&_root, &_ts);                                        \
-  CuTest_GenerateRunReport(&_root, &_ts, CUTEST_REPORT_FILE)
+  if (CUTEST_GENERATE_SUMMARY) CuTest_PrintRunResults(&_root, &_ts);             \
+  if (CUTEST_GENERATE_REPORT)  CuTest_GenerateRunReport(&_root, &_ts, CUTEST_REPORT_FILE)
 
 #define GET_RUN_RESULT()                                                       \
   ((CuTest_GetRunResult(&_root) == EN_CUTEST_RESULT_PASS) ? EXIT_SUCCESS : EXIT_FAILURE)
