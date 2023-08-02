@@ -15,6 +15,7 @@
  * https://github.com/islandcontroller/cutest
  *
  * @date  24.04.2023
+ * @date  01.08.2023  Replaced timestamp type
  ******************************************************************************/
 
 /*- Header files -------------------------------------------------------------*/
@@ -42,6 +43,9 @@
 
 /*! Summary char for invalid test cases                                       */
 #define CUTEST_SUMMARY_CHR_INVALID    '?'
+
+/*! Maxium timestamp string length                                            */
+#define CUTEST_TIMESTAMP_MAX_LEN      24u
 
 
 /*- Type definitions ---------------------------------------------------------*/
@@ -74,6 +78,13 @@ static void           CuTestGenerateReport_CaseLine(FILE* f, unsigned long* pulN
 static void           CuTestGenerateReport_CaseFooter(FILE* f);
 static void           CuTestGenerateReport_Group(FILE* f, unsigned long* pulNum, const cutest_group_ptr_t psGroup);
 static void           CuTestGenerateReport_Module(FILE* f, unsigned long* pulNum, const cutest_module_ptr_t psModule);
+
+static const char*    CuTestGetTimestampString(const time_t* pTime);
+
+
+/*- Private variables --------------------------------------------------------*/
+/*! Buffer for ISO8601-formatted timestamp string                             */
+static char acTimestampBuffer[CUTEST_TIMESTAMP_MAX_LEN + 1u];
 
 
 /*- Local functions ----------------------------------------------------------*/
@@ -535,6 +546,28 @@ static void CuTestGenerateReport_Module(FILE* f, unsigned long* pulNum, const cu
   }
 }
 
+/*!****************************************************************************
+ * @brief
+ * Helper function for generating ISO8601-formatted timestamp strings
+ *
+ * @param[in] *pTime      Input timestamp
+ * @return  (const char*) Timestamp string buffer
+ * @date  01.08.2023
+ ******************************************************************************/
+static const char* CuTestGetTimestampString(const time_t* pTime)
+{
+  assert(pTime != NULL);
+
+  const struct tm* psTm = gmtime(pTime);
+  assert(psTm != NULL);
+
+  size_t ulLen = strftime(acTimestampBuffer, sizeof(acTimestampBuffer), "%FT%T%z", psTm);
+  assert(ulLen < sizeof(acTimestampBuffer));
+  acTimestampBuffer[ulLen] = '\0';
+
+  return acTimestampBuffer;
+}
+
 
 /*- Result evaluation functions ----------------------------------------------*/
 /*!****************************************************************************
@@ -871,13 +904,14 @@ void CuTest_RunTestModule(cutest_module_ptr_t psModule)
  * Print test run results to stdout
  *
  * @param[in] psRoot      Test run root
- * @param[in] *pszTimestamp Build timestamp
+ * @param[in] *pTime      Build timestamp
  * @date  26.04.2023
+ * @date  01.08.2023  Replaced timestamp type
  ******************************************************************************/
-void CuTest_PrintRunResults(const cutest_root_ptr_t psRoot, const char* pszTimestamp)
+void CuTest_PrintRunResults(const cutest_root_ptr_t psRoot, const time_t* pTime)
 {
   assert(psRoot != NULL);
-  assert(pszTimestamp != NULL);
+  assert(pTime != NULL);
 
   printf("\n");
   printf("=================== Unit Test Report ===================\n");
@@ -886,7 +920,7 @@ void CuTest_PrintRunResults(const cutest_root_ptr_t psRoot, const char* pszTimes
   CuTestPrintSummary(psRoot);
   CuTestPrintDetails(psRoot);
   printf("\n");
-  printf("Done.\t %s\n", pszTimestamp);
+  printf("Done.\t %s\n", CuTestGetTimestampString(pTime));
   printf("========================================================\n");
 }
 
@@ -895,16 +929,17 @@ void CuTest_PrintRunResults(const cutest_root_ptr_t psRoot, const char* pszTimes
  * Generate HTML report file
  *
  * @param[in] psRoot      Test run root
- * @param[in] *pszTimestamp Build timestamp
+ * @param[in] *pTime      Build timestamp
  * @param[in] *pszFile    Output filename
  * @date  26.04.2023
+ * @date  01.08.2023  Replaced timestamp type
  ******************************************************************************/
-void CuTest_GenerateRunReport(const cutest_root_ptr_t psRoot, const char* pszTimestamp, const char* pszFile)
+void CuTest_GenerateRunReport(const cutest_root_ptr_t psRoot, const time_t* pTime, const char* pszFile)
 {
   assert(psRoot != NULL);
   assert(psRoot->pszName != NULL);
   assert(psRoot->ulCount < CUTEST_MAX_NUM_ROOT_ITEM);
-  assert(pszTimestamp != NULL);
+  assert(pTime != NULL);
   assert(pszFile != NULL);
 
   // Open output file
@@ -922,7 +957,7 @@ void CuTest_GenerateRunReport(const cutest_root_ptr_t psRoot, const char* pszTim
     "        <h1>Unit Test Report &ndash; %s</h1><hr/>"
     "        <p><b>Framework Version:</b> CuTest " CUTEST_VERSION "<br/>"
     "           <b>Test run completed at:</b> %s</p>\n",
-    psRoot->pszName, pszTimestamp
+    psRoot->pszName, CuTestGetTimestampString(pTime)
   );
 
   // Test results

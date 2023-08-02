@@ -15,6 +15,7 @@
  * https://github.com/islandcontroller/cutest
  *
  * @date  24.04.2023
+ * @date  01.08.2023  Replaced timestamp type
  ******************************************************************************/
 
 #ifndef _CUTEST_H_
@@ -24,6 +25,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <setjmp.h>
+#include <time.h>
 
 
 /*- Common definitions -------------------------------------------------------*/
@@ -266,8 +268,8 @@ void CuTest_AppendRootItem(cutest_root_ptr_t, cutest_type_t, void*);
 void CuTest_RunTestCase  (cutest_case_ptr_t);
 void CuTest_RunTestGroup (cutest_group_ptr_t);
 void CuTest_RunTestModule(cutest_module_ptr_t);
-void CuTest_PrintRunResults        (const cutest_root_ptr_t, const char*);
-void CuTest_GenerateRunReport      (const cutest_root_ptr_t, const char*, const char*);
+void CuTest_PrintRunResults        (const cutest_root_ptr_t, const time_t*);
+void CuTest_GenerateRunReport      (const cutest_root_ptr_t, const time_t*, const char*);
 cutest_result_t CuTest_GetRunResult(const cutest_root_ptr_t);
 
 /*! Test run setup macros. Usage example:
@@ -301,9 +303,9 @@ cutest_result_t CuTest_GetRunResult(const cutest_root_ptr_t);
   CuTest_RunTestModule(x)
 
 #define END_TEST_RUN()                                                         \
-  const char* _ts = __DATE__ " " __TIME__;                                     \
-  CuTest_PrintRunResults(&_root, _ts);                                         \
-  CuTest_GenerateRunReport(&_root, _ts, CUTEST_REPORT_FILE)
+  time_t _ts = time(NULL);                                                     \
+  CuTest_PrintRunResults(&_root, &_ts);                                        \
+  CuTest_GenerateRunReport(&_root, &_ts, CUTEST_REPORT_FILE)
 
 #define GET_RUN_RESULT()                                                       \
   ((CuTest_GetRunResult(&_root) == EN_CUTEST_RESULT_PASS) ? EXIT_SUCCESS : EXIT_FAILURE)
